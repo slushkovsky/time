@@ -44,19 +44,19 @@
 
     // gets or sets hours
     this.hours = function(newHours) {
-      if (!newHours) return hours;
+      if (newHours === undefined) return hours;
       hours = parseInt(newHours, 10);
     };
 
     // gets or sets minutes
     this.minutes = function(newMinutes) {
-      if (!newMinutes) return minutes;
+      if (newMinutes === undefined) return minutes;
       minutes = parseInt(newMinutes, 10);
     };
 
     // gets or sets period
     this.period = function(newPeriod) {
-      if (!newPeriod) return period;
+      if (newPeriod === undefined) return period;
       period = parsePeriod(newPeriod);
     };
   }
@@ -88,6 +88,75 @@
     else if (d.getHours() < 12 && this.period() === PM) d.setHours(d.getHours() + 12)
 
     return d;
+  };
+
+  /*  Returns time hours in 24 range
+   *
+   *  Parameters 
+   *  ----------
+   *  time  <Time>  
+   *
+   *  Return 
+   *  ------
+   *  <Integer> 	
+   *
+   *  Example
+   *  -------
+   *  hoursIn24Range(Time('8:30 pm'))  // 20
+   *  hoursIn24Range(Time('2:00 am'))  // 2
+   */ 
+
+  function hoursIn24Range(time) {
+    if (!(time instanceof Time)) return null;
+
+    return (time.hours() === 12 ? 0 : time.hours()) + (time.period() === PM ? 12 : 0);
+  }
+
+  /*  Shifts time on some hours/minutes
+   *
+   *  Parameters
+   *  ----------
+   *  hours    <Integer|undefined>  Offset in hours
+   *  minutes  <Integer|undefined>  Offset in minutes
+   *
+   *  Return 
+   *  ------
+   *  true if time was offseted successfuly or null if something went wrong.
+   *
+   *  Examples
+   *  --------
+   *  var t = Time('11:35 am');
+   *
+   *  t.offset(2, 15);    // 1:50 pm
+   *  t.offset(-4, -10);  // 9:40 am
+   */ 
+
+  Time.prototype.shift = function (hours, minutes) {
+    var sum_hours = null;
+    var sum_minutes = null;
+
+    if (!this.isValid()) return null;
+
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+
+    sum_hours = hoursIn24Range(this) + hours; 
+    sum_minutes = this.minutes() + minutes;
+
+    if (sum_minutes >= 60) {
+      sum_hours++; 
+      sum_minutes -= 60;
+    }
+
+    if (sum_hours >= 0 && sum_hours < 24) {
+      this.hours(sum_hours % 12 == 0 ? 12 : sum_hours % 12);
+      this.minutes(sum_minutes); 
+      this.period(sum_hours > 11 ? PM : AM);
+      return true;
+    }
+    else {
+      return null;
+    }
   };
 
   Time.isValid = function(time) {
