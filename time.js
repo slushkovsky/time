@@ -136,6 +136,7 @@
     var sum_minutes = null;
 
     if (!this.isValid()) return null;
+    if (hours === undefined || minutes === undefined) return null;
 
     hours = parseInt(hours);
     minutes = parseInt(minutes);
